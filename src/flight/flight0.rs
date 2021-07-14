@@ -7,6 +7,7 @@ use crate::extension::*;
 use crate::handshake::*;
 use crate::record_layer::record_layer_header::*;
 use crate::*;
+use log::error;
 
 use async_trait::async_trait;
 use rand::Rng;
@@ -54,13 +55,14 @@ impl Flight for Flight0 {
             let client_hello = match message {
                 HandshakeMessage::ClientHello(client_hello) => client_hello,
                 _ => {
+                    error!("nutbar2");
                     return Err((
                         Some(Alert {
                             alert_level: AlertLevel::Fatal,
                             alert_description: AlertDescription::InternalError,
                         }),
                         None,
-                    ))
+                    ));
                 }
             };
 
@@ -164,6 +166,7 @@ impl Flight for Flight0 {
 
             Ok(Box::new(Flight2 {}))
         } else {
+            error!("nutbar 1");
             Err((
                 Some(Alert {
                     alert_level: AlertLevel::Fatal,

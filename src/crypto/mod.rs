@@ -134,15 +134,15 @@ pub(crate) fn value_key_message(
     plaintext
 }
 
-pub(crate) enum CryptoPrivateKeyKind {
+pub enum CryptoPrivateKeyKind {
     Ed25519(Ed25519KeyPair),
     Ecdsa256(EcdsaKeyPair),
     Rsa256(RsaKeyPair),
 }
 
 pub struct CryptoPrivateKey {
-    pub(crate) kind: CryptoPrivateKeyKind,
-    pub(crate) serialized_der: Vec<u8>,
+    pub kind: CryptoPrivateKeyKind,
+    pub serialized_der: Vec<u8>,
 }
 
 impl Clone for CryptoPrivateKey {

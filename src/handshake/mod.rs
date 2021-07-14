@@ -16,6 +16,7 @@ pub mod handshake_random;
 mod handshake_test;
 
 use anyhow::Result;
+use log::error;
 use std::fmt;
 use std::io::{Read, Write};
 
@@ -233,8 +234,12 @@ impl Handshake {
             HandshakeType::Finished => {
                 HandshakeMessage::Finished(HandshakeMessageFinished::unmarshal(reader)?)
             }
-            _ => return Err(Error::ErrNotImplemented.into()),
+            _ => {
+                return Err(Error::ErrNotImplemented.into());
+            }
         };
+
+        // error!("header: {:?} {:?}", handshake_header, handshake_message);
 
         Ok(Handshake {
             handshake_header,

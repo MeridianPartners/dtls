@@ -11,6 +11,7 @@ use extension_supported_point_formats::*;
 use extension_supported_signature_algorithms::*;
 use extension_use_extended_master_secret::*;
 use extension_use_srtp::*;
+use log::error;
 
 use crate::error::*;
 
@@ -27,6 +28,7 @@ pub enum ExtensionValue {
     SupportedSignatureAlgorithms = 13,
     UseSrtp = 14,
     UseExtendedMasterSecret = 23,
+    RenegotiationInfoTypeValue = 65281,
     Unsupported,
 }
 
@@ -39,6 +41,7 @@ impl From<u16> for ExtensionValue {
             13 => ExtensionValue::SupportedSignatureAlgorithms,
             14 => ExtensionValue::UseSrtp,
             23 => ExtensionValue::UseExtendedMasterSecret,
+            65281 => ExtensionValue::RenegotiationInfoTypeValue,
             _ => ExtensionValue::Unsupported,
         }
     }
@@ -52,6 +55,7 @@ pub enum Extension {
     SupportedSignatureAlgorithms(ExtensionSupportedSignatureAlgorithms),
     UseSrtp(ExtensionUseSrtp),
     UseExtendedMasterSecret(ExtensionUseExtendedMasterSecret),
+    RenegotiationInfoTypeValue,
 }
 
 impl Extension {
@@ -63,6 +67,7 @@ impl Extension {
             Extension::SupportedSignatureAlgorithms(ext) => ext.extension_value(),
             Extension::UseSrtp(ext) => ext.extension_value(),
             Extension::UseExtendedMasterSecret(ext) => ext.extension_value(),
+            Extension::RenegotiationInfoTypeValue => ExtensionValue::RenegotiationInfoTypeValue,
         }
     }
 
@@ -76,6 +81,7 @@ impl Extension {
             Extension::SupportedSignatureAlgorithms(ext) => ext.size(),
             Extension::UseSrtp(ext) => ext.size(),
             Extension::UseExtendedMasterSecret(ext) => ext.size(),
+            Extension::RenegotiationInfoTypeValue => len,
         };
 
         len
@@ -90,11 +96,16 @@ impl Extension {
             Extension::SupportedSignatureAlgorithms(ext) => ext.marshal(writer),
             Extension::UseSrtp(ext) => ext.marshal(writer),
             Extension::UseExtendedMasterSecret(ext) => ext.marshal(writer),
+            Extension::RenegotiationInfoTypeValue => Ok(()),
         }
     }
 
     pub fn unmarshal<R: Read>(reader: &mut R) -> Result<Self> {
-        let extension_value: ExtensionValue = reader.read_u16::<BigEndian>()?.into();
+        let extension_value_raw: u16 = reader.read_u16::<BigEndian>()?.into();
+        let extension_value: ExtensionValue = extension_value_raw.into();
+        error!("infos: {:?}", extension_value_raw);
+
+        // let extension_value: ExtensionValue = reader.read_u16::<BigEndian>()?.into();
         match extension_value {
             ExtensionValue::ServerName => Ok(Extension::ServerName(
                 ExtensionServerName::unmarshal(reader)?,
@@ -110,6 +121,7 @@ impl Extension {
                     ExtensionSupportedSignatureAlgorithms::unmarshal(reader)?,
                 ))
             }
+            ExtensionValue::RenegotiationInfoTypeValue => Ok(Extension::RenegotiationInfoTypeValue),
             ExtensionValue::UseSrtp => Ok(Extension::UseSrtp(ExtensionUseSrtp::unmarshal(reader)?)),
             ExtensionValue::UseExtendedMasterSecret => Ok(Extension::UseExtendedMasterSecret(
                 ExtensionUseExtendedMasterSecret::unmarshal(reader)?,

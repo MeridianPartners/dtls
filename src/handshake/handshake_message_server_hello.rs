@@ -121,7 +121,13 @@ impl HandshakeMessageServerHello {
         let mut extension_reader = BufReader::new(extension_buffer.as_slice());
         let mut offset = 0;
         while offset < extension_buffer_len {
-            let extension = Extension::unmarshal(&mut extension_reader)?;
+            let extension = match Extension::unmarshal(&mut extension_reader) {
+                Ok(ext) => ext,
+                Err(err) => {
+                    error!("unknown extension?: {:?}", err);
+                    continue;
+                }
+            };
             extensions.push(extension);
 
             let extension_len =

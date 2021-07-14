@@ -19,6 +19,7 @@ use crate::record_layer::record_layer_header::*;
 use crate::record_layer::*;
 
 use async_trait::async_trait;
+use log::error;
 use std::fmt;
 use std::sync::atomic::Ordering;
 
@@ -80,13 +81,14 @@ impl Flight for Flight1 {
             let h = match message {
                 HandshakeMessage::HelloVerifyRequest(h) => h,
                 _ => {
+                    error!("nutbar 3");
                     return Err((
                         Some(Alert {
                             alert_level: AlertLevel::Fatal,
                             alert_description: AlertDescription::InternalError,
                         }),
                         None,
-                    ))
+                    ));
                 }
             };
 
@@ -104,6 +106,7 @@ impl Flight for Flight1 {
             state.handshake_recv_sequence = seq;
             Ok(Box::new(Flight3 {}))
         } else {
+            error!("nutbar 4 {:?}", msgs);
             Err((
                 Some(Alert {
                     alert_level: AlertLevel::Fatal,
